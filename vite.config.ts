@@ -1,16 +1,15 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
-import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   plugins: [sveltekit()],
   resolve: {
     alias: {
-      '$lib': path.resolve('./src/lib'),
+      '$lib': resolve('./src/lib'),
     },
-  },
-  test: {
-    include: ['tests/**/*.test.ts'],
-    environment: 'node',
   },
 });
