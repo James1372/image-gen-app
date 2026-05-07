@@ -47,6 +47,10 @@ export async function getStatus(modelId: string, taskId: string): Promise<Status
 
   const data = await res.json();
 
+  if (model.apiSystem === 'b') {
+    console.log('[kie.ai System B poll raw]', JSON.stringify(data));
+  }
+
   return model.apiSystem === 'b'
     ? parseSystemBResponse(data)
     : parseSystemAResponse(data);
