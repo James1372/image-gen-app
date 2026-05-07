@@ -11,13 +11,17 @@ export async function startGeneration(req: GenerateRequest): Promise<string> {
   const model = getModel(req.modelId);
   const apiKey = getApiKey();
 
+  const body = model.apiSystem === 'b'
+    ? buildSystemBBody(req)
+    : buildSystemABody(req);
+
   const res = await fetch(model.endpoint, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(buildBody(req)),
+    body: JSON.stringify(body),
   });
 
   if (res.status === 429) throw new Error('RATE_LIMIT');
@@ -25,6 +29,8 @@ export async function startGeneration(req: GenerateRequest): Promise<string> {
   if (!res.ok) throw new Error('API_ERROR');
 
   const data = await res.json();
+
+  // System A: data.data.taskId — System B: data.data.taskId
   return data.data.taskId as string;
 }
 
@@ -32,7 +38,8 @@ export async function getStatus(modelId: string, taskId: string): Promise<Status
   const model = getModel(modelId);
   const apiKey = getApiKey();
 
-  const res = await fetch(`${model.pollEndpoint}?taskId=${taskId}`, {
+  const url = `${model.pollEndpoint}?taskId=${taskId}`;
+  const res = await fetch(url, {
     headers: { 'Authorization': `Bearer ${apiKey}` },
   });
 
@@ -40,33 +47,75 @@ export async function getStatus(modelId: string, taskId: string): Promise<Status
 
   const data = await res.json();
 
-  if (data.successFlag === 2) {
-    return { status: 'error', error: 'Generierung fehlgeschlagen' };
-  }
+  return model.apiSystem === 'b'
+    ? parseSystemBResponse(data)
+    : parseSystemAResponse(data);
+}
+
+function parseSystemAResponse(data: Record<string, unknown>): StatusResponse {
+  if (data.successFlag === 2) return { status: 'error', error: 'Generierung fehlgeschlagen' };
   if (data.successFlag === 1) {
+    const response = data.response as Record<string, unknown>;
     return {
       status: 'done',
-      imageUrls: data.response.result_urls as string[],
+      imageUrls: response.result_urls as string[],
       progress: data.progress as string,
     };
   }
   return { status: 'pending', progress: (data.progress ?? '0.00') as string };
 }
 
-function buildBody(req: GenerateRequest): Record<string, unknown> {
-  if (req.modelId === 'gpt4o-image') {
+function parseSystemBResponse(data: Record<string, unknown>): StatusResponse {
+  const inner = data.data as Record<string, unknown> | undefined;
+  if (!inner) return { status: 'pending', progress: '0.00' };
+
+  const status = inner.status as string;
+
+  if (status === 'fail') return { status: 'error', error: 'Generierung fehlgeschlagen' };
+
+  if (status === 'success') {
+    const result = inner.result as Record<string, unknown> | undefined;
+    const images = (result?.images as Array<{ url: string }> | undefined) ?? [];
     return {
-      prompt: req.prompt,
-      size: req.aspectRatio,
-      nVariants: req.count,
-      isEnhance: req.enhance,
+      status: 'done',
+      imageUrls: images.map(img => img.url),
+      progress: '1.00',
     };
   }
-  return {
-    prompt: req.prompt,
-    aspectRatio: req.aspectRatio,
-    model: req.modelId,
-    outputFormat: 'jpeg',
-    promptUpsampling: req.enhance,
+
+  const progressMap: Record<string, string> = {
+    waiting: '0.05',
+    queuing: '0.15',
+    generating: '0.50',
   };
+  return { status: 'pending', progress: progressMap[status] ?? '0.10' };
+}
+
+function buildSystemABody(req: GenerateRequest): Record<string, unknown> {
+  if (req.modelId === 'gpt4o-image') {
+    return { prompt: req.prompt, size: req.aspectRatio, nVariants: req.count, isEnhance: req.enhance };
+  }
+  // flux-kontext-pro / flux-kontext-max
+  return { prompt: req.prompt, aspectRatio: req.aspectRatio, model: req.modelId, outputFormat: 'jpeg', promptUpsampling: req.enhance };
+}
+
+function buildSystemBBody(req: GenerateRequest): Record<string, unknown> {
+  const input: Record<string, unknown> = { prompt: req.prompt };
+
+  // aspect ratio key varies by model family
+  if (req.modelId.startsWith('ideogram/')) {
+    input['image_size'] = req.aspectRatio;
+  } else {
+    input['aspect_ratio'] = req.aspectRatio;
+  }
+
+  if (req.resolution) input['resolution'] = req.resolution;
+
+  // models that support num_images
+  const multiImageModels = ['google/imagen4-fast', 'wan/2-7-image'];
+  if (multiImageModels.includes(req.modelId) && req.count > 1) {
+    input['num_images'] = req.count;
+  }
+
+  return { model: req.modelId, input };
 }

@@ -1,11 +1,13 @@
 export interface ModelConfig {
   id: string;
   label: string;
+  apiSystem: 'a' | 'b';
   endpoint: string;
   pollEndpoint: string;
   aspectRatios: string[];
   maxImages: number;
   supportsEnhance: boolean;
+  supportsResolution: boolean;
 }
 
 export interface GenerateRequest {
@@ -14,6 +16,7 @@ export interface GenerateRequest {
   aspectRatio: string;
   count: number;
   enhance: boolean;
+  resolution?: string;
 }
 
 export interface StatusResponse {

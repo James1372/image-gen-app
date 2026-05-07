@@ -149,3 +149,73 @@ describe('getStatus', () => {
     );
   });
 });
+
+describe('System B: startGeneration', () => {
+  beforeEach(() => mockFetch.mockReset());
+
+  it('calls unified createTask endpoint for nano-banana-2', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({ code: 200, data: { taskId: 'task_nb2_abc' } }),
+    });
+
+    const taskId = await startGeneration({
+      prompt: 'A sunset',
+      modelId: 'nano-banana-2',
+      aspectRatio: '16:9',
+      count: 1,
+      enhance: false,
+      resolution: '2K',
+    });
+
+    expect(taskId).toBe('task_nb2_abc');
+    expect(mockFetch).toHaveBeenCalledWith(
+      'https://api.kie.ai/api/v1/jobs/createTask',
+      expect.objectContaining({ method: 'POST' })
+    );
+    const body = JSON.parse(mockFetch.mock.calls[0][1].body);
+    expect(body.model).toBe('nano-banana-2');
+    expect(body.input.prompt).toBe('A sunset');
+    expect(body.input.resolution).toBe('2K');
+  });
+});
+
+describe('System B: getStatus', () => {
+  beforeEach(() => mockFetch.mockReset());
+
+  it('returns pending for queuing status', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ code: 200, data: { taskId: 'task_nb2_abc', status: 'queuing' } }),
+    });
+    const result = await getStatus('nano-banana-2', 'task_nb2_abc');
+    expect(result.status).toBe('pending');
+    expect(result.progress).toBe('0.15');
+  });
+
+  it('returns done with imageUrls on success', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        code: 200,
+        data: {
+          taskId: 'task_nb2_abc',
+          status: 'success',
+          result: { images: [{ url: 'https://cdn.kie.ai/nb2.jpg' }] },
+        },
+      }),
+    });
+    const result = await getStatus('nano-banana-2', 'task_nb2_abc');
+    expect(result).toEqual({ status: 'done', imageUrls: ['https://cdn.kie.ai/nb2.jpg'], progress: '1.00' });
+  });
+
+  it('returns error on fail status', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ code: 200, data: { status: 'fail' } }),
+    });
+    const result = await getStatus('nano-banana-2', 'task_nb2_abc');
+    expect(result.status).toBe('error');
+  });
+});
