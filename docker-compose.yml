@@ -1,6 +1,6 @@
 services:
   image-gen-app:
-    build: .
+    image: ghcr.io/james1372/image-gen-app:latest
     ports:
       - "8000:3000"
     environment:
