@@ -8,6 +8,8 @@
   let selectedAspectRatio = $state(MODELS[0].aspectRatios[0]);
   let count = $state(1);
   let enhance = $state(false);
+  let resolution = $state('1K');
+  const resolutionOptions = ['1K', '2K', '4K'];
 
   let uiStatus = $state<'idle' | 'generating' | 'done' | 'error'>('idle');
   let imageUrls = $state<string[]>([]);
@@ -22,6 +24,7 @@
       selectedAspectRatio = selectedModel.aspectRatios[0];
     }
     if (count > selectedModel.maxImages) count = selectedModel.maxImages;
+    if (!selectedModel.supportsResolution) resolution = '1K';
   });
 
   async function generate() {
@@ -41,6 +44,7 @@
         aspectRatio: selectedAspectRatio,
         count,
         enhance,
+        resolution,
       }),
     });
 
@@ -131,6 +135,17 @@
           {/each}
         </select>
       </label>
+
+      {#if selectedModel.supportsResolution}
+        <label>
+          Auflösung
+          <select bind:value={resolution} disabled={uiStatus === 'generating'}>
+            {#each resolutionOptions as res (res)}
+              <option value={res}>{res}</option>
+            {/each}
+          </select>
+        </label>
+      {/if}
 
       {#if selectedModel.supportsEnhance}
         <label class="checkbox">
