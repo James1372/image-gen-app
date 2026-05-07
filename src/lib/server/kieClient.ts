@@ -47,10 +47,6 @@ export async function getStatus(modelId: string, taskId: string): Promise<Status
 
   const data = await res.json();
 
-  if (model.apiSystem === 'b') {
-    console.log('[kie.ai System B poll raw]', JSON.stringify(data));
-  }
-
   return model.apiSystem === 'b'
     ? parseSystemBResponse(data)
     : parseSystemAResponse(data);
@@ -73,18 +69,22 @@ function parseSystemBResponse(data: Record<string, unknown>): StatusResponse {
   const inner = data.data as Record<string, unknown> | undefined;
   if (!inner) return { status: 'pending', progress: '0.00' };
 
-  const status = inner.status as string;
+  const state = inner.state as string;  // API uses "state", not "status"
 
-  if (status === 'fail') return { status: 'error', error: 'Generierung fehlgeschlagen' };
+  if (state === 'fail') return { status: 'error', error: 'Generierung fehlgeschlagen' };
 
-  if (status === 'success') {
-    const result = inner.result as Record<string, unknown> | undefined;
-    const images = (result?.images as Array<{ url: string }> | undefined) ?? [];
-    return {
-      status: 'done',
-      imageUrls: images.map(img => img.url),
-      progress: '1.00',
-    };
+  if (state === 'success') {
+    try {
+      const resultJson = inner.resultJson as string;
+      const parsed = JSON.parse(resultJson) as { resultUrls?: string[] };
+      return {
+        status: 'done',
+        imageUrls: parsed.resultUrls ?? [],
+        progress: '1.00',
+      };
+    } catch {
+      return { status: 'error', error: 'Ergebnis konnte nicht gelesen werden' };
+    }
   }
 
   const progressMap: Record<string, string> = {
@@ -92,7 +92,7 @@ function parseSystemBResponse(data: Record<string, unknown>): StatusResponse {
     queuing: '0.15',
     generating: '0.50',
   };
-  return { status: 'pending', progress: progressMap[status] ?? '0.10' };
+  return { status: 'pending', progress: progressMap[state] ?? '0.10' };
 }
 
 function buildSystemABody(req: GenerateRequest): Record<string, unknown> {

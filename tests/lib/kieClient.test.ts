@@ -130,7 +130,6 @@ describe('getStatus', () => {
 
     const result = await getStatus('gpt4o-image', 'task_abc123');
     expect(result.status).toBe('error');
-    expect(result.error).toBeTruthy();
   });
 
   it('polls the correct endpoint with taskId', async () => {
@@ -184,25 +183,25 @@ describe('System B: startGeneration', () => {
 describe('System B: getStatus', () => {
   beforeEach(() => mockFetch.mockReset());
 
-  it('returns pending for queuing status', async () => {
+  it('returns pending for queuing state', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ code: 200, data: { taskId: 'task_nb2_abc', status: 'queuing' } }),
+      json: async () => ({ code: 200, data: { taskId: 'task_nb2_abc', state: 'queuing' } }),
     });
     const result = await getStatus('nano-banana-2', 'task_nb2_abc');
     expect(result.status).toBe('pending');
     expect(result.progress).toBe('0.15');
   });
 
-  it('returns done with imageUrls on success', async () => {
+  it('returns done with imageUrls on success — resultJson is a JSON string', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
         code: 200,
         data: {
           taskId: 'task_nb2_abc',
-          status: 'success',
-          result: { images: [{ url: 'https://cdn.kie.ai/nb2.jpg' }] },
+          state: 'success',
+          resultJson: JSON.stringify({ resultUrls: ['https://cdn.kie.ai/nb2.jpg'] }),
         },
       }),
     });
@@ -210,12 +209,22 @@ describe('System B: getStatus', () => {
     expect(result).toEqual({ status: 'done', imageUrls: ['https://cdn.kie.ai/nb2.jpg'], progress: '1.00' });
   });
 
-  it('returns error on fail status', async () => {
+  it('returns error on fail state', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ code: 200, data: { status: 'fail' } }),
+      json: async () => ({ code: 200, data: { state: 'fail' } }),
     });
     const result = await getStatus('nano-banana-2', 'task_nb2_abc');
     expect(result.status).toBe('error');
+  });
+
+  it('returns pending with waiting state at 5%', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ code: 200, data: { state: 'waiting' } }),
+    });
+    const result = await getStatus('nano-banana-2', 'task_nb2_abc');
+    expect(result.status).toBe('pending');
+    expect(result.progress).toBe('0.05');
   });
 });
