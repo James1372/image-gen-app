@@ -1,0 +1,10 @@
+services:
+  image-gen-app:
+    build: .
+    ports:
+      - "8000:3000"
+    environment:
+      - KIE_API_KEY=${KIE_API_KEY}
+      - NODE_ENV=production
+      - ORIGIN=http://192.168.178.55:8000
+    restart: unless-stopped
