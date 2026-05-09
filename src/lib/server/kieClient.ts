@@ -94,6 +94,8 @@ function parseSystemBResponse(data: Record<string, unknown>): StatusResponse {
 }
 
 export function buildSystemABody(req: GenerateRequest): Record<string, unknown> {
+  const model = getModel(req.modelId);
+
   if (req.modelId === 'gpt4o-image') {
     const body: Record<string, unknown> = {
       prompt: req.prompt,
@@ -101,7 +103,11 @@ export function buildSystemABody(req: GenerateRequest): Record<string, unknown> 
       nVariants: req.count,
       isEnhance: req.enhance,
     };
-    if (req.referenceImageUrl) body['filesUrl'] = [req.referenceImageUrl];
+    if (req.referenceImageUrl && model.referenceImageParam) {
+      body[model.referenceImageParam] = model.referenceImageIsArray
+        ? [req.referenceImageUrl]
+        : req.referenceImageUrl;
+    }
     return body;
   }
   // flux-kontext-pro / flux-kontext-max
@@ -112,7 +118,11 @@ export function buildSystemABody(req: GenerateRequest): Record<string, unknown> 
     outputFormat: 'jpeg',
     promptUpsampling: req.enhance,
   };
-  if (req.referenceImageUrl) body['inputImage'] = req.referenceImageUrl;
+  if (req.referenceImageUrl && model.referenceImageParam) {
+    body[model.referenceImageParam] = model.referenceImageIsArray
+      ? [req.referenceImageUrl]
+      : req.referenceImageUrl;
+  }
   return body;
 }
 

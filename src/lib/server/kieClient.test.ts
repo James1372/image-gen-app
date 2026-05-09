@@ -78,8 +78,14 @@ describe('buildSystemBBody', () => {
     expect(body.model).toBe('gpt-image-2-text-to-image');
   });
 
-  it('flux-kontext-pro (System A): wird nicht über buildSystemBBody aufgerufen — kein Test nötig', () => {
-    expect(true).toBe(true);
+  it('midjourney: referenceImageUrl wird ignoriert (supportsReferenceImage: false)', () => {
+    const body = buildSystemABody({
+      ...baseReq,
+      modelId: 'midjourney',
+      referenceImageUrl: 'https://0x0.st/test.jpg',
+    }) as Record<string, unknown>;
+    expect(body['inputImage']).toBeUndefined();
+    expect(body['filesUrl']).toBeUndefined();
   });
 
   it('ideogram: kein referenceImageParam → kein Bild-Feld gesetzt', () => {
