@@ -66,9 +66,8 @@
     clearTimeout(timeoutId);
 
     if (!res || !res.ok) {
-      const errText = res ? await res.text().catch(() => '') : 'no response';
       uploadStatus = 'error';
-      uploadError = `Upload fehlgeschlagen (${res?.status ?? 'network'}: ${errText.slice(0, 80)})`;
+      uploadError = 'Upload fehlgeschlagen – bitte erneut versuchen';
       (event.target as HTMLInputElement).value = '';
       return;
     }
@@ -76,7 +75,7 @@
     const data = await res.json().catch(() => null);
     if (!data?.url) {
       uploadStatus = 'error';
-      uploadError = 'Upload fehlgeschlagen – kein URL in Antwort';
+      uploadError = 'Upload fehlgeschlagen – bitte erneut versuchen';
       (event.target as HTMLInputElement).value = '';
       return;
     }
