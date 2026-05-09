@@ -10,7 +10,8 @@ export const POST: RequestHandler = async ({ request }) => {
     throw error(400, 'Ungültiger Request-Body');
   }
 
-  const { prompt, modelId, aspectRatio, count, enhance } = body as Record<string, unknown>;
+  const { prompt, modelId, aspectRatio, count, enhance, resolution, referenceImageUrl } =
+    body as Record<string, unknown>;
 
   if (typeof prompt !== 'string' || prompt.trim().length === 0) {
     throw error(400, 'Prompt ist erforderlich');
@@ -32,6 +33,8 @@ export const POST: RequestHandler = async ({ request }) => {
       aspectRatio,
       count,
       enhance: enhance === true,
+      resolution: typeof resolution === 'string' ? resolution : undefined,
+      referenceImageUrl: typeof referenceImageUrl === 'string' ? referenceImageUrl : undefined,
     });
     return json({ taskId, modelId });
   } catch (e: unknown) {

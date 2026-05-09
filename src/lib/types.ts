@@ -8,6 +8,10 @@ export interface ModelConfig {
   maxImages: number;
   supportsEnhance: boolean;
   supportsResolution: boolean;
+  supportsReferenceImage: boolean;
+  referenceImageParam?: string;
+  referenceImageIsArray?: boolean;
+  referenceImageModelId?: string;
 }
 
 export interface GenerateRequest {
@@ -17,6 +21,7 @@ export interface GenerateRequest {
   count: number;
   enhance: boolean;
   resolution?: string;
+  referenceImageUrl?: string;
 }
 
 export interface StatusResponse {
