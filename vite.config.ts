@@ -7,6 +7,7 @@ import { execSync } from 'child_process';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const gitSha = (() => {
+  if (process.env.GIT_SHA) return process.env.GIT_SHA.slice(0, 7);
   try { return execSync('git rev-parse --short HEAD').toString().trim(); }
   catch { return 'dev'; }
 })();

@@ -14,10 +14,15 @@ export const POST: RequestHandler = async ({ request }) => {
   upload.append('reqtype', 'fileupload');
   upload.append('fileToUpload', file, file.name);
 
-  const res = await fetch('https://catbox.moe/user/api.php', { method: 'POST', body: upload });
-  if (!res.ok) throw error(502, 'Upload fehlgeschlagen');
+  let res: Response;
+  try {
+    res = await fetch('https://catbox.moe/user/api.php', { method: 'POST', body: upload });
+  } catch (e) {
+    throw error(502, `Netzwerkfehler: ${e instanceof Error ? e.message : String(e)}`);
+  }
+  if (!res.ok) throw error(502, `catbox.moe: HTTP ${res.status}`);
 
   const url = (await res.text()).trim();
-  if (!url.startsWith('https://')) throw error(502, 'Upload fehlgeschlagen');
+  if (!url.startsWith('https://')) throw error(502, `Ungültige URL: ${url.slice(0, 60)}`);
   return json({ url });
 };

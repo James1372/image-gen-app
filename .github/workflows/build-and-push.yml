@@ -28,3 +28,5 @@ jobs:
           context: .
           push: true
           tags: ghcr.io/james1372/image-gen-app:latest
+          build-args: |
+            GIT_SHA=${{ github.sha }}
