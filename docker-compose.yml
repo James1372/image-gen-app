@@ -5,6 +5,7 @@ services:
       - "8001:3000"
     environment:
       - KIE_API_KEY=${KIE_API_KEY}
+      - IMGBB_API_KEY=${IMGBB_API_KEY}
       - NODE_ENV=production
       - ORIGIN=http://192.168.178.55:8001
       - BODY_SIZE_LIMIT=52428800
