@@ -29,8 +29,6 @@ export async function startGeneration(req: GenerateRequest): Promise<string> {
   if (!res.ok) throw new Error('API_ERROR');
 
   const data = await res.json();
-
-  // System A: data.data.taskId — System B: data.data.taskId
   return data.data.taskId as string;
 }
 
@@ -69,7 +67,7 @@ function parseSystemBResponse(data: Record<string, unknown>): StatusResponse {
   const inner = data.data as Record<string, unknown> | undefined;
   if (!inner) return { status: 'pending', progress: '0.00' };
 
-  const state = inner.state as string;  // API uses "state", not "status"
+  const state = inner.state as string;
 
   if (state === 'fail') return { status: 'error', error: 'Generierung fehlgeschlagen' };
 
@@ -95,18 +93,33 @@ function parseSystemBResponse(data: Record<string, unknown>): StatusResponse {
   return { status: 'pending', progress: progressMap[state] ?? '0.10' };
 }
 
-function buildSystemABody(req: GenerateRequest): Record<string, unknown> {
+export function buildSystemABody(req: GenerateRequest): Record<string, unknown> {
   if (req.modelId === 'gpt4o-image') {
-    return { prompt: req.prompt, size: req.aspectRatio, nVariants: req.count, isEnhance: req.enhance };
+    const body: Record<string, unknown> = {
+      prompt: req.prompt,
+      size: req.aspectRatio,
+      nVariants: req.count,
+      isEnhance: req.enhance,
+    };
+    if (req.referenceImageUrl) body['filesUrl'] = [req.referenceImageUrl];
+    return body;
   }
   // flux-kontext-pro / flux-kontext-max
-  return { prompt: req.prompt, aspectRatio: req.aspectRatio, model: req.modelId, outputFormat: 'jpeg', promptUpsampling: req.enhance };
+  const body: Record<string, unknown> = {
+    prompt: req.prompt,
+    aspectRatio: req.aspectRatio,
+    model: req.modelId,
+    outputFormat: 'jpeg',
+    promptUpsampling: req.enhance,
+  };
+  if (req.referenceImageUrl) body['inputImage'] = req.referenceImageUrl;
+  return body;
 }
 
-function buildSystemBBody(req: GenerateRequest): Record<string, unknown> {
+export function buildSystemBBody(req: GenerateRequest): Record<string, unknown> {
+  const model = getModel(req.modelId);
   const input: Record<string, unknown> = { prompt: req.prompt };
 
-  // aspect ratio key varies by model family
   if (req.modelId.startsWith('ideogram/')) {
     input['image_size'] = req.aspectRatio;
   } else {
@@ -115,11 +128,20 @@ function buildSystemBBody(req: GenerateRequest): Record<string, unknown> {
 
   if (req.resolution) input['resolution'] = req.resolution;
 
-  // models that support num_images
   const multiImageModels = ['google/imagen4-fast', 'wan/2-7-image'];
   if (multiImageModels.includes(req.modelId) && req.count > 1) {
     input['num_images'] = req.count;
   }
 
-  return { model: req.modelId, input };
+  if (req.referenceImageUrl && model.supportsReferenceImage && model.referenceImageParam) {
+    input[model.referenceImageParam] = model.referenceImageIsArray
+      ? [req.referenceImageUrl]
+      : req.referenceImageUrl;
+  }
+
+  const modelId = (req.referenceImageUrl && model.referenceImageModelId)
+    ? model.referenceImageModelId
+    : req.modelId;
+
+  return { model: modelId, input };
 }
