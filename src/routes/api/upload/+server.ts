@@ -17,5 +17,6 @@ export const POST: RequestHandler = async ({ request }) => {
   if (!res.ok) throw error(502, 'Upload zu 0x0.st fehlgeschlagen');
 
   const url = (await res.text()).trim();
+  if (!url.startsWith('https://')) throw error(502, 'Upload zu 0x0.st fehlgeschlagen');
   return json({ url });
 };

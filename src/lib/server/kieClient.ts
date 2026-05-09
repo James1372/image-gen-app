@@ -103,7 +103,7 @@ export function buildSystemABody(req: GenerateRequest): Record<string, unknown> 
       nVariants: req.count,
       isEnhance: req.enhance,
     };
-    if (req.referenceImageUrl && model.referenceImageParam) {
+    if (req.referenceImageUrl && model.supportsReferenceImage && model.referenceImageParam) {
       body[model.referenceImageParam] = model.referenceImageIsArray
         ? [req.referenceImageUrl]
         : req.referenceImageUrl;
@@ -118,7 +118,7 @@ export function buildSystemABody(req: GenerateRequest): Record<string, unknown> 
     outputFormat: 'jpeg',
     promptUpsampling: req.enhance,
   };
-  if (req.referenceImageUrl && model.referenceImageParam) {
+  if (req.referenceImageUrl && model.supportsReferenceImage && model.referenceImageParam) {
     body[model.referenceImageParam] = model.referenceImageIsArray
       ? [req.referenceImageUrl]
       : req.referenceImageUrl;

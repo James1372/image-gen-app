@@ -66,14 +66,20 @@
     if (!res || !res.ok) {
       uploadStatus = 'error';
       uploadError = 'Upload fehlgeschlagen – bitte erneut versuchen';
-      if (fileInput) fileInput.value = '';
+      (event.target as HTMLInputElement).value = '';
       return;
     }
 
-    const data = await res.json();
+    const data = await res.json().catch(() => null);
+    if (!data?.url) {
+      uploadStatus = 'error';
+      uploadError = 'Upload fehlgeschlagen – bitte erneut versuchen';
+      (event.target as HTMLInputElement).value = '';
+      return;
+    }
     referenceImageUrl = data.url;
     uploadStatus = 'done';
-    if (fileInput) fileInput.value = '';
+    (event.target as HTMLInputElement).value = '';
   }
 
   function clearReferenceImage() {
