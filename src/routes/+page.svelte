@@ -15,6 +15,7 @@
   let referenceImageName = $state('');
   let uploadStatus = $state<'idle' | 'uploading' | 'done' | 'error'>('idle');
   let uploadError = $state('');
+  let fileInput = $state<HTMLInputElement | null>(null);
 
   let uiStatus = $state<'idle' | 'generating' | 'done' | 'error'>('idle');
   let imageUrls = $state<string[]>([]);
@@ -51,17 +52,28 @@
     const formData = new FormData();
     formData.append('file', file);
 
-    const res = await fetch('/api/upload', { method: 'POST', body: formData });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30_000);
 
-    if (!res.ok) {
+    const res = await fetch('/api/upload', {
+      method: 'POST',
+      body: formData,
+      signal: controller.signal,
+    }).catch(() => null);
+
+    clearTimeout(timeoutId);
+
+    if (!res || !res.ok) {
       uploadStatus = 'error';
       uploadError = 'Upload fehlgeschlagen – bitte erneut versuchen';
+      if (fileInput) fileInput.value = '';
       return;
     }
 
     const data = await res.json();
     referenceImageUrl = data.url;
     uploadStatus = 'done';
+    if (fileInput) fileInput.value = '';
   }
 
   function clearReferenceImage() {
@@ -69,6 +81,7 @@
     referenceImageName = '';
     uploadStatus = 'idle';
     uploadError = '';
+    if (fileInput) fileInput.value = '';
   }
 
   async function generate() {
@@ -171,6 +184,7 @@
               onchange={handleFileSelect}
               disabled={uiStatus === 'generating'}
               class="file-input-hidden"
+              bind:this={fileInput}
             />
           </label>
         {/if}
