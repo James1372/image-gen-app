@@ -7,6 +7,8 @@ export const POST: RequestHandler = async ({ request }) => {
 
   const file = formData.get('file');
   if (!(file instanceof File)) throw error(400, 'Feld "file" fehlt oder ist keine Datei');
+  if (!file.type.startsWith('image/')) throw error(400, 'Nur Bilddateien erlaubt');
+  if (file.size > 50 * 1024 * 1024) throw error(413, 'Datei zu groß (max. 50 MB)');
 
   const upload = new FormData();
   upload.append('file', file, file.name);
