@@ -22,7 +22,7 @@ describe('POST /api/upload', () => {
   it('gibt URL zurück wenn Upload erfolgreich', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true,
-      text: async () => 'https://0x0.st/aBcD.jpg\n',
+      text: async () => 'https://files.catbox.moe/aBcD.jpg\n',
     }));
 
     const { POST } = await import('./+server.js');
@@ -40,10 +40,10 @@ describe('POST /api/upload', () => {
     const res = await POST(event);
     const body = await res.json();
 
-    expect(body.url).toBe('https://0x0.st/aBcD.jpg');
+    expect(body.url).toBe('https://files.catbox.moe/aBcD.jpg');
   });
 
-  it('gibt 502 zurück wenn 0x0.st-Upload fehlschlägt', async () => {
+  it('gibt 502 zurück wenn Upload fehlschlägt', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: false,
       status: 500,

@@ -11,12 +11,13 @@ export const POST: RequestHandler = async ({ request }) => {
   if (file.size > 50 * 1024 * 1024) throw error(413, 'Datei zu groß (max. 50 MB)');
 
   const upload = new FormData();
-  upload.append('file', file, file.name);
+  upload.append('reqtype', 'fileupload');
+  upload.append('fileToUpload', file, file.name);
 
-  const res = await fetch('https://0x0.st', { method: 'POST', body: upload });
-  if (!res.ok) throw error(502, 'Upload zu 0x0.st fehlgeschlagen');
+  const res = await fetch('https://catbox.moe/user/api.php', { method: 'POST', body: upload });
+  if (!res.ok) throw error(502, 'Upload fehlgeschlagen');
 
   const url = (await res.text()).trim();
-  if (!url.startsWith('https://')) throw error(502, 'Upload zu 0x0.st fehlgeschlagen');
+  if (!url.startsWith('https://')) throw error(502, 'Upload fehlgeschlagen');
   return json({ url });
 };
