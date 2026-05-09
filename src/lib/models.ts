@@ -17,6 +17,9 @@ export const MODELS: ModelConfig[] = [
     maxImages: 4,
     supportsEnhance: true,
     supportsResolution: false,
+    supportsReferenceImage: true,
+    referenceImageParam: 'filesUrl',
+    referenceImageIsArray: true,
   },
   {
     id: 'flux-kontext-pro',
@@ -28,6 +31,9 @@ export const MODELS: ModelConfig[] = [
     maxImages: 1,
     supportsEnhance: true,
     supportsResolution: false,
+    supportsReferenceImage: true,
+    referenceImageParam: 'inputImage',
+    referenceImageIsArray: false,
   },
   {
     id: 'flux-kontext-max',
@@ -39,6 +45,9 @@ export const MODELS: ModelConfig[] = [
     maxImages: 1,
     supportsEnhance: true,
     supportsResolution: false,
+    supportsReferenceImage: true,
+    referenceImageParam: 'inputImage',
+    referenceImageIsArray: false,
   },
   {
     id: 'midjourney',
@@ -50,6 +59,7 @@ export const MODELS: ModelConfig[] = [
     maxImages: 4,
     supportsEnhance: false,
     supportsResolution: false,
+    supportsReferenceImage: false,
   },
   // ── System B ────────────────────────────────────────────────
   {
@@ -61,6 +71,9 @@ export const MODELS: ModelConfig[] = [
     maxImages: 1,
     supportsEnhance: false,
     supportsResolution: true,
+    supportsReferenceImage: true,
+    referenceImageParam: 'image_input',
+    referenceImageIsArray: true,
   },
   {
     id: 'nano-banana-pro',
@@ -71,6 +84,9 @@ export const MODELS: ModelConfig[] = [
     maxImages: 1,
     supportsEnhance: false,
     supportsResolution: true,
+    supportsReferenceImage: true,
+    referenceImageParam: 'image_input',
+    referenceImageIsArray: true,
   },
   {
     id: 'google/nano-banana',
@@ -81,6 +97,9 @@ export const MODELS: ModelConfig[] = [
     maxImages: 1,
     supportsEnhance: false,
     supportsResolution: false,
+    supportsReferenceImage: true,
+    referenceImageParam: 'image_urls',
+    referenceImageIsArray: true,
   },
   {
     id: 'gpt-image-2-text-to-image',
@@ -91,6 +110,10 @@ export const MODELS: ModelConfig[] = [
     maxImages: 1,
     supportsEnhance: false,
     supportsResolution: true,
+    supportsReferenceImage: true,
+    referenceImageParam: 'input_urls',
+    referenceImageIsArray: true,
+    referenceImageModelId: 'gpt-image-2-image-to-image',
   },
   {
     id: 'ideogram/v3-text-to-image',
@@ -101,6 +124,7 @@ export const MODELS: ModelConfig[] = [
     maxImages: 1,
     supportsEnhance: false,
     supportsResolution: false,
+    supportsReferenceImage: false,
   },
   {
     id: 'google/imagen4-fast',
@@ -111,6 +135,7 @@ export const MODELS: ModelConfig[] = [
     maxImages: 4,
     supportsEnhance: false,
     supportsResolution: false,
+    supportsReferenceImage: false,
   },
   {
     id: 'flux-2/pro-text-to-image',
@@ -121,6 +146,10 @@ export const MODELS: ModelConfig[] = [
     maxImages: 1,
     supportsEnhance: false,
     supportsResolution: true,
+    supportsReferenceImage: true,
+    referenceImageParam: 'input_urls',
+    referenceImageIsArray: true,
+    referenceImageModelId: 'flux-2/pro-image-to-image',
   },
   {
     id: 'grok-imagine/text-to-image',
@@ -131,6 +160,10 @@ export const MODELS: ModelConfig[] = [
     maxImages: 1,
     supportsEnhance: false,
     supportsResolution: false,
+    supportsReferenceImage: true,
+    referenceImageParam: 'image_urls',
+    referenceImageIsArray: true,
+    referenceImageModelId: 'grok-imagine/image-to-image',
   },
   {
     id: 'wan/2-7-image',
@@ -141,6 +174,9 @@ export const MODELS: ModelConfig[] = [
     maxImages: 4,
     supportsEnhance: false,
     supportsResolution: true,
+    supportsReferenceImage: true,
+    referenceImageParam: 'input_urls',
+    referenceImageIsArray: true,
   },
   {
     id: 'seedream/5-lite-text-to-image',
@@ -151,6 +187,10 @@ export const MODELS: ModelConfig[] = [
     maxImages: 1,
     supportsEnhance: false,
     supportsResolution: true,
+    supportsReferenceImage: true,
+    referenceImageParam: 'input_urls',
+    referenceImageIsArray: true,
+    referenceImageModelId: 'seedream/5-lite-image-to-image',
   },
 ];
 
