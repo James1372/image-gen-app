@@ -3,6 +3,8 @@
   import { MODELS } from '$lib/models.js';
   import type { ModelConfig } from '$lib/types.js';
 
+  const version = __GIT_SHA__;
+
   let prompt = $state('');
   let selectedModelId = $state(MODELS[0].id);
   let selectedAspectRatio = $state(MODELS[0].aspectRatios[0]);
@@ -165,7 +167,7 @@
 </script>
 
 <main>
-  <h1>Bildgenerierung</h1>
+  <h1>Bildgenerierung <span class="version">#{version}</span></h1>
 
   <form onsubmit={(e) => { e.preventDefault(); generate(); }}>
     <label>
@@ -303,6 +305,14 @@
 </main>
 
 <style>
+  .version {
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: #9ca3af;
+    font-family: monospace;
+    vertical-align: middle;
+  }
+
   .reference-image-section {
     display: flex;
     flex-direction: column;
